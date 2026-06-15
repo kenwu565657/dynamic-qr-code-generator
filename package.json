@@ -29,10 +29,23 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "jest"
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "jest": {
-    "preset": "jest-expo"
+      "preset": "jest-expo",
+      "collectCoverageFrom": [
+        "App.tsx",
+        "components/**/*.{ts,tsx}",
+        "app-helpers.ts",
+        "qr-code-utils.ts",
+        "!**/*.test.{ts,tsx}",
+        "!index.ts"
+      ],
+      "coverageReporters": [
+        "text",
+        "lcov"
+      ]
   },
   "private": true
 }
