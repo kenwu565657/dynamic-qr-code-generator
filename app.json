@@ -4,24 +4,24 @@
     "slug": "dynamic-qr-code-generator",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/dynamic-qr-code-generator-app-icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "qr-app", 
+    "scheme": "qr-app",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourname.dynamicqr"
+      "bundleIdentifier": "com.kenwu565657.dynamicqr"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/dynamic-qr-code-generator-app-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.yourname.dynamicqr",
+      "package": "com.kenwu565657.dynamicqr",
       "intentFilters": [
         {
           "action": "VIEW",
@@ -38,7 +38,12 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/dynamic-qr-code-generator-app-icon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ca61bb8a-dbd2-4174-9fd0-f2d0cdb468eb"
+      }
     }
   }
 }
