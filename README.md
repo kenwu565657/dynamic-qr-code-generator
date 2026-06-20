@@ -11,9 +11,12 @@ npm run start
 npm run test:coverage
 ```
 
-# Build App By Expo
+# Build App By Expo Android
 ```sh
-eas build --platform android
-# or
 npx eas-cli build --platform android --profile production
+```
+
+# Build App By Expo IOS
+```sh
+npx eas-cli build --platform ios --profile production
 ```

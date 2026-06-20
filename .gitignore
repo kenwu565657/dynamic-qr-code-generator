@@ -45,3 +45,4 @@ coverage/
 
 # secret
 secret/
+credentials.json
