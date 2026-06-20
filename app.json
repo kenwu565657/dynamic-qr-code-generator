@@ -14,14 +14,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.kenwu565657.dynamicqr"
+      "bundleIdentifier": "com.kenwu565657.dynamicqrcodegenerator"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/dynamic-qr-code-generator-app-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.kenwu565657.dynamicqr",
+      "package": "com.kenwu565657.dynamicqrcodegenerator",
       "intentFilters": [
         {
           "action": "VIEW",
