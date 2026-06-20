@@ -62,6 +62,24 @@ describe('SavedQRCodesModal', () => {
     expect(props.onDeleteItem).toHaveBeenCalledWith('item-1');
   });
 
+  it('renders script items with the script label', () => {
+    const props = createProps({
+      filteredItems: [
+        {
+          id: 'script-1',
+          name: '',
+          content: 'return 1;',
+          isJs: true,
+          updatedAt: '2026-06-15T11:00:00.000Z',
+        },
+      ],
+    });
+    const screen = render(<SavedQRCodesModal {...props} />);
+
+    expect(screen.getByText('Script')).toBeTruthy();
+    expect(screen.getByText('JS: return 1;')).toBeTruthy();
+  });
+
   it('renders the empty state for unmatched search results', () => {
     const props = createProps({ filteredItems: [], searchQuery: 'missing' });
     const screen = render(<SavedQRCodesModal {...props} />);

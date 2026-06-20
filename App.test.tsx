@@ -38,16 +38,21 @@ describe('App', () => {
   const addListenerMock = jest.spyOn(Keyboard, 'addListener');
   const dismissMock = jest.spyOn(Keyboard, 'dismiss').mockImplementation(() => undefined);
   const alertMock = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+  const keyboardListeners: Record<string, () => void> = {};
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    Object.keys(keyboardListeners).forEach((key) => delete keyboardListeners[key]);
     (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
     (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
     (Linking.useURL as jest.Mock).mockReturnValue(null);
     (Linking.parse as jest.Mock).mockImplementation(() => ({ queryParams: {} }));
     (Linking.createURL as jest.Mock).mockReturnValue('app://shared');
-    addListenerMock.mockImplementation(() => ({ remove: jest.fn() }) as never);
+    addListenerMock.mockImplementation(((eventName: string, listener: () => void) => {
+      keyboardListeners[eventName] = listener;
+      return { remove: jest.fn() };
+    }) as never);
   });
 
   afterEach(() => {
@@ -128,6 +133,115 @@ describe('App', () => {
 
     fireEvent.changeText(screen.getByPlaceholderText('Search text or scripts'), 'missing');
     expect(screen.getByText('No saved QR codes found.')).toBeTruthy();
+  });
+
+  it('loads saved items from storage, opens one, and deletes one', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+      JSON.stringify([
+        {
+          id: 'saved-1',
+          name: 'Stored QR',
+          content: 'Loaded text',
+          isJs: false,
+          updatedAt: '2026-06-21T10:00:00.000Z',
+        },
+      ])
+    );
+
+    const screen = render(<App />);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    fireEvent.press(screen.getByText('Library'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Stored QR')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText('Stored QR'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Plain Text Editor')).toBeTruthy();
+      expect(screen.getByDisplayValue('Loaded text')).toBeTruthy();
+      expect(alertMock).toHaveBeenCalledWith('Loaded', 'Saved QR code opened.');
+    });
+
+    fireEvent.press(screen.getByText('Library'));
+    fireEvent.press(screen.getByText('Delete'));
+
+    await waitFor(() => {
+      expect(AsyncStorage.setItem).toHaveBeenLastCalledWith('saved-qr-codes', '[]');
+    });
+  });
+
+  it('shows an alert when saving empty content', () => {
+    const screen = render(<App />);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    fireEvent.press(screen.getByText('Clear'));
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    fireEvent.press(screen.getByText('Save'));
+
+    expect(alertMock).toHaveBeenCalledWith('Empty', 'Enter text or script before saving.');
+  });
+
+  it('shows an error when a shared link cannot be parsed', async () => {
+    (Linking.useURL as jest.Mock).mockReturnValue('app://shared?data=bad');
+    (Linking.parse as jest.Mock).mockReturnValue({
+      queryParams: {
+        data: 'not-base64',
+      },
+    });
+
+    render(<App />);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    await waitFor(() => {
+      expect(alertMock).toHaveBeenCalledWith('Error', 'Could not parse shared link.');
+    });
+  });
+
+  it('shows an error when saved items cannot be loaded', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValue(new Error('storage failed'));
+
+    render(<App />);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    await waitFor(() => {
+      expect(alertMock).toHaveBeenCalledWith('Error', 'Could not load saved QR codes.');
+    });
+  });
+
+  it('hides the preview while the keyboard is visible', () => {
+    const screen = render(<App />);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+      keyboardListeners.keyboardDidShow?.();
+    });
+
+    expect(screen.getByText('QR preview hidden while typing')).toBeTruthy();
+
+    act(() => {
+      keyboardListeners.keyboardDidHide?.();
+    });
+
+    expect(screen.queryByText('QR preview hidden while typing')).toBeNull();
   });
 
   it('copies a share link to the clipboard', async () => {

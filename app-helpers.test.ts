@@ -29,9 +29,24 @@ describe('app-helpers', () => {
   ];
 
   it('sanitizes saved items from unknown storage data', () => {
-    const mixed = [savedItems[0], { foo: 'bar' }, savedItems[1], null];
+    const mixed = [
+      savedItems[0],
+      { ...savedItems[1], name: undefined },
+      { foo: 'bar' },
+      null,
+    ];
 
-    expect(sanitizeSavedItems(mixed)).toEqual(savedItems);
+    expect(sanitizeSavedItems(mixed)).toEqual([
+      savedItems[0],
+      {
+        ...savedItems[1],
+        name: '',
+      },
+    ]);
+  });
+
+  it('respects the max saved item limit while sanitizing', () => {
+    expect(sanitizeSavedItems(savedItems, 1)).toEqual([savedItems[0]]);
   });
 
   it('returns an empty array when storage data is invalid', () => {
@@ -48,8 +63,17 @@ describe('app-helpers', () => {
     ).toBe('abcdefghijklmnopqrstuvwxyz1234567890...');
   });
 
+  it('falls back to Untitled when both name and content are empty', () => {
+    expect(buildSavedItemLabel({ name: '   ', content: '   ' })).toBe('Untitled');
+  });
+
   it('builds a type-aware saved item preview', () => {
     expect(buildSavedItemPreview({ content: 'Hello QR', isJs: false })).toBe('TEXT: Hello QR');
+  });
+
+  it('builds a JS preview and falls back to Untitled when content is empty', () => {
+    expect(buildSavedItemPreview({ content: 'return 1;', isJs: true })).toBe('JS: return 1;');
+    expect(buildSavedItemPreview({ content: '   ', isJs: false })).toBe('TEXT: Untitled');
   });
 
   it('deduplicates and prepends saved items when merging', () => {

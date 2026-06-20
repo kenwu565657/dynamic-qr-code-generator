@@ -43,10 +43,18 @@ describe('EditorCard', () => {
     expect(props.onClear).toHaveBeenCalledTimes(1);
     expect(props.onReset).toHaveBeenCalledTimes(1);
 
+    fireEvent.press(screen.getByText('()'));
+    fireEvent.press(screen.getByText('{}'));
+    fireEvent.press(screen.getByText('=>'));
     fireEvent.press(screen.getByText('return'));
+    fireEvent.press(screen.getByText('new Date()'));
     fireEvent.press(screen.getByText('time()'));
-    expect(props.onInsertSnippet).toHaveBeenNthCalledWith(1, 'return ');
-    expect(props.onInsertSnippet).toHaveBeenNthCalledWith(2, '.toLocaleTimeString()');
+    expect(props.onInsertSnippet).toHaveBeenNthCalledWith(1, '()');
+    expect(props.onInsertSnippet).toHaveBeenNthCalledWith(2, '{}');
+    expect(props.onInsertSnippet).toHaveBeenNthCalledWith(3, '=> ');
+    expect(props.onInsertSnippet).toHaveBeenNthCalledWith(4, 'return ');
+    expect(props.onInsertSnippet).toHaveBeenNthCalledWith(5, 'new Date()');
+    expect(props.onInsertSnippet).toHaveBeenNthCalledWith(6, '.toLocaleTimeString()');
 
     const input = screen.getByDisplayValue('return new Date()');
     fireEvent.changeText(input, 'return 42');
