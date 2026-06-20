@@ -42,3 +42,6 @@ yarn-error.*
 
 # unit test coverage
 coverage/
+
+# secret
+secret/
