@@ -1,4 +1,11 @@
 # Dynamic QR Code Generator
+
+![Tests](https://github.com/kenwu565657/dynamic-qr-code-generator/actions/workflows/tests.yml/badge.svg)
+![Statements](https://img.shields.io/endpoint?url=https://kenwu565657.github.io/dynamic-qr-code-generator/badges/statements.json)
+![Branches](https://img.shields.io/endpoint?url=https://kenwu565657.github.io/dynamic-qr-code-generator/badges/branches.json)
+![Functions](https://img.shields.io/endpoint?url=https://kenwu565657.github.io/dynamic-qr-code-generator/badges/functions.json)
+![Lines](https://img.shields.io/endpoint?url=https://kenwu565657.github.io/dynamic-qr-code-generator/badges/lines.json)
+
 This app allow user to generate and store QR code by simple Javascript Function. It is built by React Native Expo.
 
 # How to Start Development
@@ -6,10 +13,17 @@ This app allow user to generate and store QR code by simple Javascript Function.
 npm run start
 ```
 
-# How to Unit test and Check Coverage
+# How to Unit Test
+```sh
+npm run test
+```
+
+# How to Check Unit Test Coverage
 ```sh
 npm run test:coverage
 ```
+
+This prints the local coverage summary in the terminal and writes the report files to the `coverage/` folder.
 
 # Build App By Expo Android
 ```sh
