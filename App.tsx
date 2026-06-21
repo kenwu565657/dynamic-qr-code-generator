@@ -241,7 +241,7 @@ export default function App() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.title}>Dynamic QR Generator</Text>
+            <Text style={styles.title}>Dynamic QR Code Generator</Text>
             <AppActionBar
               isJs={isJs}
               onToggleMode={() => setIsJs(!isJs)}

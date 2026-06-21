@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Dynamic QR Generator",
+    "name": "Dynamic QR Code Generator",
     "slug": "dynamic-qr-code-generator",
     "version": "1.0.0",
     "orientation": "portrait",
