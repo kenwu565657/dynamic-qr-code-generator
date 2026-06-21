@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { MAX_SAVED_QR_CODES, type SavedQRCode } from '../app-helpers';
+import { MAX_SAVED_QR_CODES, type SavedQRCode } from '../utils/app-helpers';
 import { SavedQRCodesModal } from './SavedQRCodesModal';
 
 jest.mock('react-native/Libraries/Modal/Modal', () => {

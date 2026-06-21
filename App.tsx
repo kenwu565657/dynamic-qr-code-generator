@@ -20,7 +20,7 @@ import {
   buildQRCodeValue,
   decodeSharedPayload,
   DEFAULT_INPUT,
-} from './qr-code-utils';
+} from './utils/qr-code-utils';
 import {
   filterSavedItems,
   getEditorMeta,
@@ -29,7 +29,7 @@ import {
   mergeSavedItems,
   sanitizeSavedItems,
   type SavedQRCode,
-} from './app-helpers';
+} from './utils/app-helpers';
 import { AppActionBar } from './components/AppActionBar';
 import { EditorCard } from './components/EditorCard';
 import { QRPreview } from './components/QRPreview';

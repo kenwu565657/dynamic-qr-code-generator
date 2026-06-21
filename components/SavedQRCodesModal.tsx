@@ -4,7 +4,7 @@ import {
   buildSavedItemPreview,
   MAX_SAVED_QR_CODES,
   type SavedQRCode,
-} from '../app-helpers';
+} from '../utils/app-helpers';
 
 type SavedQRCodesModalProps = {
   visible: boolean;

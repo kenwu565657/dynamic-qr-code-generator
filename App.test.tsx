@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import * as Linking from 'expo-linking';
 import App from './App';
-import { DEFAULT_INPUT } from './qr-code-utils';
+import { DEFAULT_INPUT } from './utils/qr-code-utils';
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(),

@@ -37,8 +37,7 @@
       "collectCoverageFrom": [
         "App.tsx",
         "components/**/*.{ts,tsx}",
-        "app-helpers.ts",
-        "qr-code-utils.ts",
+        "utils/**/*.{ts,tsx}",
         "!**/*.test.{ts,tsx}",
         "!index.ts"
       ],
