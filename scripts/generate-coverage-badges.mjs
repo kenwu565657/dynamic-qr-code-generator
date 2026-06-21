@@ -8,10 +8,10 @@ const summary = JSON.parse(readFileSync(summaryPath, 'utf8'));
 const { total } = summary;
 
 const metrics = {
-  statements: total.statements,
-  branches: total.branches,
-  functions: total.functions,
-  lines: total.lines,
+  "Statements Coverage": total.statements,
+  "Branches Coverage": total.branches,
+  "Functions Coverage": total.functions,
+  "Lines Coverage": total.lines,
 };
 
 mkdirSync(outputDir, { recursive: true });
