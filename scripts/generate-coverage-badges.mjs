@@ -8,10 +8,22 @@ const summary = JSON.parse(readFileSync(summaryPath, 'utf8'));
 const { total } = summary;
 
 const metrics = {
-  "Statements Coverage": total.statements,
-  "Branches Coverage": total.branches,
-  "Functions Coverage": total.functions,
-  "Lines Coverage": total.lines,
+  statements: {
+    label: 'Statement Coverage',
+    metric: total.statements,
+  },
+  branches: {
+    label: 'Branche Coverage',
+    metric: total.branches,
+  },
+  functions: {
+    label: 'Function Coverage',
+    metric: total.functions,
+  },
+  lines: {
+    label: 'Line Coverage',
+    metric: total.lines,
+  },
 };
 
 mkdirSync(outputDir, { recursive: true });
@@ -42,7 +54,7 @@ const colorForPct = (pct) => {
 
 const formatPct = (pct) => `${Number(pct.toFixed(2))}%`;
 
-for (const [label, metric] of Object.entries(metrics)) {
+for (const [key, { label, metric }] of Object.entries(metrics)) {
   const badge = {
     schemaVersion: 1,
     label,
@@ -50,7 +62,7 @@ for (const [label, metric] of Object.entries(metrics)) {
     color: colorForPct(metric.pct),
   };
 
-  writeFileSync(join(outputDir, `${label}.json`), JSON.stringify(badge));
+  writeFileSync(join(outputDir, `${key}.json`), JSON.stringify(badge));
 }
 
 writeFileSync(
