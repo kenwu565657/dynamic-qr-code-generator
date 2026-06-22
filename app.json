@@ -3,7 +3,7 @@
     "name": "Dynamic QR Code Generator",
     "slug": "dynamic-qr-code-generator",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/dynamic-qr-code-generator-app-icon.png",
     "userInterfaceStyle": "light",
     "scheme": "qr-app",

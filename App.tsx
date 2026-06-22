@@ -300,14 +300,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     alignItems: 'center',
-    padding: 20,
-    paddingBottom: 32,
+    paddingHorizontal: 10,
     flexGrow: 1,
   },
   title: { 
     fontSize: 24, 
     fontWeight: 'bold', 
-    marginTop: 40, 
+    marginTop: 10, 
     marginBottom: 20 
   },
 });
