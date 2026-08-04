@@ -1,3 +1,5 @@
+import { canStoreQRCodeContent } from './qr-code-utils';
+
 export type SavedQRCode = {
   id: string;
   name: string;
@@ -29,6 +31,7 @@ export const sanitizeSavedItems = (value: unknown, maxItems = MAX_SAVED_QR_CODES
         typeof item.isJs === 'boolean' &&
         typeof item.updatedAt === 'string'
     )
+      .filter((item) => canStoreQRCodeContent(item.content, item.isJs))
     .map((item) => ({
       ...item,
       name: typeof item.name === 'string' ? item.name : '',

@@ -18,8 +18,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Base64 } from 'js-base64';
 import {
   buildQRCodeValue,
+  canStoreQRCodeContent,
   decodeSharedPayload,
   DEFAULT_INPUT,
+  isQRCodeErrorValue,
 } from './utils/qr-code-utils';
 import {
   filterSavedItems,
@@ -36,6 +38,8 @@ import { QRPreview } from './components/QRPreview';
 import { SavedQRCodesModal } from './components/SavedQRCodesModal';
 
 const STORAGE_KEY = 'saved-qr-codes';
+const SCRIPT_RULE_ALERT_TITLE = 'Script cannot be generated';
+const SCRIPT_RULE_ALERT_MESSAGE = 'Use one return statement ending with ; and remove any code after it.';
 
 export default function App() {
   const [input, setInput] = useState<string>(DEFAULT_INPUT);
@@ -46,6 +50,7 @@ export default function App() {
   const [isLibraryOpen, setIsLibraryOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
+  const [isPreviewInvalid, setIsPreviewInvalid] = useState<boolean>(false);
   const [selection, setSelection] = useState({ start: DEFAULT_INPUT.length, end: DEFAULT_INPUT.length });
   const scrollViewRef = useRef<ScrollView | null>(null);
   const inputRef = useRef<TextInput | null>(null);
@@ -74,14 +79,39 @@ export default function App() {
 
   const { lineCount, characterCount, placeholder: editorPlaceholder } = getEditorMeta(input, isJs);
 
+  const showInvalidJavaScript = () => {
+    setQrValue('');
+    setIsPreviewInvalid(true);
+    Alert.alert(SCRIPT_RULE_ALERT_TITLE, SCRIPT_RULE_ALERT_MESSAGE);
+  };
+
+  const buildCurrentQRCodeValue = (content: string) => {
+    const nextQRCodeValue = buildQRCodeValue(content, isJs);
+
+    if (isJs && (!canStoreQRCodeContent(content, true) || isQRCodeErrorValue(nextQRCodeValue))) {
+      showInvalidJavaScript();
+      return null;
+    }
+
+    return nextQRCodeValue;
+  };
+
   const refreshQRCode = () => {
-    setQrValue(buildQRCodeValue(input, isJs));
+    const nextQRCodeValue = buildCurrentQRCodeValue(input.trim());
+
+    if (nextQRCodeValue === null) {
+      return;
+    }
+
+    setIsPreviewInvalid(false);
+    setQrValue(nextQRCodeValue);
   };
 
   const clearEditor = () => {
     setSavedName('');
     setInput('');
     setQrValue('');
+    setIsPreviewInvalid(false);
     setSelection({ start: 0, end: 0 });
 
     setTimeout(() => {
@@ -95,6 +125,7 @@ export default function App() {
     setInput(DEFAULT_INPUT);
     setIsJs(true);
     setQrValue(buildQRCodeValue(DEFAULT_INPUT, true));
+    setIsPreviewInvalid(false);
     setSelection({ start: DEFAULT_INPUT.length, end: DEFAULT_INPUT.length });
 
     setTimeout(() => {
@@ -162,7 +193,9 @@ export default function App() {
           setInput(content);
           setIsJs(Boolean(incomingIsJs));
           setSavedName('');
-          setQrValue(buildQRCodeValue(content, Boolean(incomingIsJs)));
+          const incomingQRCodeValue = buildQRCodeValue(content, Boolean(incomingIsJs));
+          setQrValue(isQRCodeErrorValue(incomingQRCodeValue) ? '' : incomingQRCodeValue);
+          setIsPreviewInvalid(isQRCodeErrorValue(incomingQRCodeValue));
           focusEditor();
           scrollToEditor();
           Alert.alert("Imported", "Loaded shared QR configuration!");
@@ -174,6 +207,16 @@ export default function App() {
   }, [url]);
 
   const copyShareLink = async () => {
+    const content = input.trim();
+    const nextQRCodeValue = buildCurrentQRCodeValue(content);
+
+    if (nextQRCodeValue === null) {
+      return;
+    }
+
+    setIsPreviewInvalid(false);
+    setQrValue(nextQRCodeValue);
+
     const payload = JSON.stringify({ content: input, isJs });
     const encodedPayload = Base64.encode(payload);
     
@@ -187,15 +230,27 @@ export default function App() {
 
   const saveCurrentQRCode = async () => {
     const content = input.trim();
+    const name = savedName.trim();
+
+    if (!name) {
+      Alert.alert('Name required', 'Enter a name before saving this QR code.');
+      return;
+    }
 
     if (!content) {
       Alert.alert('Empty', 'Enter text or script before saving.');
       return;
     }
 
+    const nextQRCodeValue = buildCurrentQRCodeValue(content);
+
+    if (nextQRCodeValue === null) {
+      return;
+    }
+
     const nextItem: SavedQRCode = {
       id: `${Date.now()}`,
-      name: savedName.trim(),
+      name,
       content,
       isJs,
       updatedAt: new Date().toISOString(),
@@ -203,6 +258,8 @@ export default function App() {
 
     const nextItems = mergeSavedItems(savedItems, nextItem, MAX_SAVED_QR_CODES);
 
+    setIsPreviewInvalid(false);
+    setQrValue(nextQRCodeValue);
     setSavedItems(nextItems);
     await persistSavedItems(nextItems);
     Alert.alert('Saved', `Stored locally. ${nextItems.length}/${MAX_SAVED_QR_CODES} used.`);
@@ -213,6 +270,7 @@ export default function App() {
     setInput(item.content);
     setIsJs(item.isJs);
     setQrValue(buildQRCodeValue(item.content, item.isJs));
+    setIsPreviewInvalid(false);
     setIsLibraryOpen(false);
     focusEditor();
     scrollToEditor();
@@ -251,7 +309,11 @@ export default function App() {
               onOpenLibrary={() => setIsLibraryOpen(true)}
             />
 
-            <QRPreview qrValue={qrValue} isKeyboardVisible={isKeyboardVisible} />
+            <QRPreview
+              qrValue={qrValue}
+              isKeyboardVisible={isKeyboardVisible}
+              isInvalid={isPreviewInvalid}
+            />
 
             <EditorCard
               isJs={isJs}
@@ -263,7 +325,10 @@ export default function App() {
               inputRef={inputRef}
               selection={selection}
               onChangeSavedName={setSavedName}
-              onChangeText={setInput}
+              onChangeText={(text) => {
+                setInput(text);
+                setIsPreviewInvalid(false);
+              }}
               onFocus={scrollToEditor}
               onSelectionChange={(
                 event: NativeSyntheticEvent<TextInputSelectionChangeEventData>

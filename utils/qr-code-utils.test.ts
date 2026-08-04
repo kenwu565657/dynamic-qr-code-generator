@@ -2,9 +2,13 @@ import { Base64 } from 'js-base64';
 import {
   BLOCKED_JS_ERROR,
   buildQRCodeValue,
+  canStoreQRCodeContent,
   decodeSharedPayload,
   DEFAULT_INPUT,
+  hasSingleReturnStatement,
   hasBlockedJavaScript,
+  INVALID_JS_ERROR,
+  SCRIPT_FORMAT_ERROR,
   UNSAFE_JS_ERROR,
 } from './qr-code-utils';
 
@@ -26,17 +30,41 @@ describe('qr-code-utils', () => {
     expect(buildQRCodeValue('return new String(“xxx”);', true)).toBe('xxx');
   });
 
+  it('requires script mode to be a single return statement ending with semicolon', () => {
+    expect(hasSingleReturnStatement('return new Date().toLocaleTimeString();')).toBe(true);
+    expect(hasSingleReturnStatement('return "a;b";')).toBe(true);
+    expect(hasSingleReturnStatement('return new Date().toLocaleTimeString();new Date()')).toBe(false);
+    expect(hasSingleReturnStatement('return new Date().toLocaleTimeString();new Date();')).toBe(false);
+    expect(hasSingleReturnStatement('new Date();')).toBe(false);
+    expect(hasSingleReturnStatement('return new Date()')).toBe(false);
+  });
+
+  it('rejects extra script text after a completed return statement', () => {
+    expect(buildQRCodeValue('return new Date().toLocaleTimeString();new Date()', true)).toBe(
+      SCRIPT_FORMAT_ERROR
+    );
+  });
+
   it('blocks network-related JavaScript access', () => {
     expect(hasBlockedJavaScript('return fetch("https://example.com")')).toBe(true);
-    expect(buildQRCodeValue('return fetch("https://example.com")', true)).toBe(BLOCKED_JS_ERROR);
+    expect(buildQRCodeValue('return fetch("https://example.com");', true)).toBe(BLOCKED_JS_ERROR);
   });
 
   it('blocks unsafe escape hatches', () => {
-    expect(buildQRCodeValue('return Function("return 1")()', true)).toBe(UNSAFE_JS_ERROR);
+    expect(buildQRCodeValue('return Function("return 1")();', true)).toBe(UNSAFE_JS_ERROR);
   });
 
   it('returns an invalid JS error for malformed code', () => {
-    expect(buildQRCodeValue('return (', true)).toBe('Error: Invalid JS');
+    expect(buildQRCodeValue('return (;', true)).toBe(INVALID_JS_ERROR);
+  });
+
+  it('allows only valid non-empty QR content to be stored', () => {
+    expect(canStoreQRCodeContent('Hello QR', false)).toBe(true);
+    expect(canStoreQRCodeContent('return "Hello QR";', true)).toBe(true);
+    expect(canStoreQRCodeContent('return "Hello QR";new Date();', true)).toBe(false);
+    expect(canStoreQRCodeContent('return (;', true)).toBe(false);
+    expect(canStoreQRCodeContent('return fetch("https://example.com");', true)).toBe(false);
+    expect(canStoreQRCodeContent('   ', false)).toBe(false);
   });
 
   it('decodes a shared payload', () => {

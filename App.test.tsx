@@ -35,6 +35,8 @@ jest.mock('react-native-safe-area-context', () => {
 jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
 describe('App', () => {
+  const scriptRuleAlertTitle = 'Script cannot be generated';
+  const scriptRuleAlertMessage = 'Use one return statement ending with ; and remove any code after it.';
   const addListenerMock = jest.spyOn(Keyboard, 'addListener');
   const dismissMock = jest.spyOn(Keyboard, 'dismiss').mockImplementation(() => undefined);
   const alertMock = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
@@ -135,6 +137,23 @@ describe('App', () => {
     expect(screen.getByText('No saved QR codes found.')).toBeTruthy();
   });
 
+  it('regenerates the QR preview when saving edited content', async () => {
+    const screen = render(<App />);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    fireEvent.press(screen.getByText('Mode: JS'));
+    fireEvent.changeText(screen.getByPlaceholderText('Name for saved QR code'), 'Saved value QR');
+    fireEvent.changeText(screen.getByPlaceholderText('Enter plain text for the QR code...'), 'Saved value');
+    fireEvent.press(screen.getByText('Save'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Saved value')).toBeTruthy();
+    });
+  });
+
   it('loads saved items from storage, opens one, and deletes one', async () => {
     (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
       JSON.stringify([
@@ -189,9 +208,87 @@ describe('App', () => {
       jest.runOnlyPendingTimers();
     });
 
+    fireEvent.changeText(screen.getByPlaceholderText('Name for saved QR code'), 'Empty QR');
     fireEvent.press(screen.getByText('Save'));
 
     expect(alertMock).toHaveBeenCalledWith('Empty', 'Enter text or script before saving.');
+  });
+
+  it('shows an alert when saving without a name', () => {
+    const screen = render(<App />);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    fireEvent.press(screen.getByText('Save'));
+
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(alertMock).toHaveBeenCalledWith('Name required', 'Enter a name before saving this QR code.');
+  });
+
+  it('does not save invalid JavaScript content locally', async () => {
+    const screen = render(<App />);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    fireEvent.changeText(screen.getByPlaceholderText('Name for saved QR code'), 'Broken script');
+    fireEvent.changeText(screen.getByPlaceholderText('Write JavaScript that returns the QR content...'), 'return (');
+    fireEvent.press(screen.getByText('Save'));
+
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(alertMock).toHaveBeenCalledWith(scriptRuleAlertTitle, scriptRuleAlertMessage);
+  });
+
+  it('shows an alert and invalid marker instead of QR error text when generating invalid JS', () => {
+    const screen = render(<App />);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    fireEvent.changeText(screen.getByPlaceholderText('Write JavaScript that returns the QR content...'), 'return (');
+    fireEvent.press(screen.getByText('Generate'));
+
+    expect(alertMock).toHaveBeenCalledWith(scriptRuleAlertTitle, scriptRuleAlertMessage);
+    expect(screen.getByText('X')).toBeTruthy();
+    expect(screen.queryByText(/^Error:/)).toBeNull();
+  });
+
+  it('does not share invalid JavaScript content', async () => {
+    const screen = render(<App />);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    fireEvent.changeText(screen.getByPlaceholderText('Write JavaScript that returns the QR content...'), 'return (');
+    fireEvent.press(screen.getByText('Share'));
+
+    expect(Clipboard.setStringAsync).not.toHaveBeenCalled();
+    expect(Linking.createURL).not.toHaveBeenCalled();
+    expect(alertMock).toHaveBeenCalledWith(scriptRuleAlertTitle, scriptRuleAlertMessage);
+    expect(screen.getByText('X')).toBeTruthy();
+  });
+
+  it('does not save JavaScript content after the return statement', async () => {
+    const screen = render(<App />);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    fireEvent.changeText(screen.getByPlaceholderText('Name for saved QR code'), 'Extra script');
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Write JavaScript that returns the QR content...'),
+      'return new Date().toLocaleTimeString();new Date()'
+    );
+    fireEvent.press(screen.getByText('Save'));
+
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(alertMock).toHaveBeenCalledWith(scriptRuleAlertTitle, scriptRuleAlertMessage);
   });
 
   it('shows an error when a shared link cannot be parsed', async () => {

@@ -4,13 +4,25 @@ import QRCode from 'react-native-qrcode-svg';
 type QRPreviewProps = {
   qrValue: string;
   isKeyboardVisible: boolean;
+  isInvalid?: boolean;
 };
 
-export function QRPreview({ qrValue, isKeyboardVisible }: QRPreviewProps) {
+export function QRPreview({ qrValue, isKeyboardVisible, isInvalid = false }: QRPreviewProps) {
   if (isKeyboardVisible) {
     return (
       <View style={styles.collapsedNotice}>
         <Text style={styles.collapsedText}>QR preview hidden while typing</Text>
+      </View>
+    );
+  }
+
+  if (isInvalid) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.invalidMark}>
+          <Text style={styles.invalidMarkText}>X</Text>
+        </View>
+        <Text style={styles.invalidText}>Script cannot be generated</Text>
       </View>
     );
   }
@@ -47,5 +59,23 @@ const styles = StyleSheet.create({
     marginTop: 15,
     color: '#555',
     fontFamily: 'Courier',
+  },
+  invalidMark: {
+    width: 200,
+    height: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  invalidMarkText: {
+    color: '#c7352f',
+    fontSize: 144,
+    fontWeight: '800',
+    lineHeight: 160,
+  },
+  invalidText: {
+    marginTop: 10,
+    color: '#8d211c',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

@@ -45,6 +45,21 @@ describe('app-helpers', () => {
     ]);
   });
 
+  it('removes invalid JavaScript items while sanitizing storage data', () => {
+    expect(
+      sanitizeSavedItems([
+        savedItems[0],
+        {
+          id: 'bad-js',
+          name: 'Broken script',
+          content: 'return (',
+          isJs: true,
+          updatedAt: '2026-06-06T00:02:00.000Z',
+        },
+      ])
+    ).toEqual([savedItems[0]]);
+  });
+
   it('respects the max saved item limit while sanitizing', () => {
     expect(sanitizeSavedItems(savedItems, 1)).toEqual([savedItems[0]]);
   });

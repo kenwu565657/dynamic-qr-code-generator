@@ -23,4 +23,11 @@ describe('QRPreview', () => {
 
     expect(screen.toJSON()).toBeTruthy();
   });
+
+  it('renders an invalid marker instead of QR content', () => {
+    const screen = render(<QRPreview qrValue="" isKeyboardVisible={false} isInvalid />);
+
+    expect(screen.getByText('X')).toBeTruthy();
+    expect(screen.getByText('Script cannot be generated')).toBeTruthy();
+  });
 });
