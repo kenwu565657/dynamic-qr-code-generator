@@ -91,7 +91,28 @@ describe('app-helpers', () => {
     expect(buildSavedItemPreview({ content: '   ', isJs: false })).toBe('TEXT: Untitled');
   });
 
-  it('deduplicates and prepends saved items when merging', () => {
+  it('deduplicates only matching name, content, and mode when merging', () => {
+    const merged = mergeSavedItems(savedItems, {
+      id: '3',
+      name: '',
+      content: 'Hello QR',
+      isJs: false,
+      updatedAt: '2026-06-06T00:02:00.000Z',
+    });
+
+    expect(merged).toEqual([
+      {
+        id: '3',
+        name: '',
+        content: 'Hello QR',
+        isJs: false,
+        updatedAt: '2026-06-06T00:02:00.000Z',
+      },
+      savedItems[0],
+    ]);
+  });
+
+  it('keeps saved items with the same content and different names when merging', () => {
     const merged = mergeSavedItems(savedItems, {
       id: '3',
       name: 'Greeting',
@@ -108,7 +129,7 @@ describe('app-helpers', () => {
         isJs: false,
         updatedAt: '2026-06-06T00:02:00.000Z',
       },
-      savedItems[0],
+      ...savedItems,
     ]);
   });
 

@@ -248,6 +248,27 @@ export default function App() {
       return;
     }
 
+    const isReplacingSavedItem = savedItems.some(
+      (item) => item.name === name && item.content === content && item.isJs === isJs
+    );
+
+    const hasDuplicateSavedName = savedItems.some(
+      (item) => item.name.trim() === name && !(item.content === content && item.isJs === isJs)
+    );
+
+    if (hasDuplicateSavedName) {
+      Alert.alert('Name already used', 'Choose a different name before saving this QR code.');
+      return;
+    }
+
+    if (!isReplacingSavedItem && savedItems.length >= MAX_SAVED_QR_CODES) {
+      Alert.alert(
+        'Library full',
+        `You can save up to ${MAX_SAVED_QR_CODES} QR codes. Delete one before saving another.`
+      );
+      return;
+    }
+
     const nextItem: SavedQRCode = {
       id: `${Date.now()}`,
       name,
