@@ -252,6 +252,15 @@ export default function App() {
       (item) => item.name === name && item.content === content && item.isJs === isJs
     );
 
+    const hasDuplicateSavedName = savedItems.some(
+      (item) => item.name.trim() === name && !(item.content === content && item.isJs === isJs)
+    );
+
+    if (hasDuplicateSavedName) {
+      Alert.alert('Name already used', 'Choose a different name before saving this QR code.');
+      return;
+    }
+
     if (!isReplacingSavedItem && savedItems.length >= MAX_SAVED_QR_CODES) {
       Alert.alert(
         'Library full',

@@ -228,6 +228,44 @@ describe('App', () => {
     expect(alertMock).toHaveBeenCalledWith('Name required', 'Enter a name before saving this QR code.');
   });
 
+  it('shows an alert when saving with a name that already exists', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+      JSON.stringify([
+        {
+          id: 'saved-1',
+          name: 'test 1',
+          content: 'return "original";',
+          isJs: true,
+          updatedAt: '2026-06-21T10:00:00.000Z',
+        },
+      ])
+    );
+
+    const screen = render(<App />);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    fireEvent.changeText(screen.getByPlaceholderText('Name for saved QR code'), 'test 1');
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Write JavaScript that returns the QR content...'),
+      'return "new";'
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Library')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText('Save'));
+
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(alertMock).toHaveBeenCalledWith(
+      'Name already used',
+      'Choose a different name before saving this QR code.'
+    );
+  });
+
   it('does not save invalid JavaScript content locally', async () => {
     const screen = render(<App />);
 
