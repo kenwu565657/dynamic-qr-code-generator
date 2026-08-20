@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import * as Linking from 'expo-linking';
 import App from './App';
+import { MAX_SAVED_QR_CODES } from './utils/app-helpers';
 import { DEFAULT_INPUT } from './utils/qr-code-utils';
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -240,6 +241,42 @@ describe('App', () => {
 
     expect(AsyncStorage.setItem).not.toHaveBeenCalled();
     expect(alertMock).toHaveBeenCalledWith(scriptRuleAlertTitle, scriptRuleAlertMessage);
+  });
+
+  it('shows an alert instead of replacing the oldest saved item when the library is full', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+      JSON.stringify(
+        Array.from({ length: MAX_SAVED_QR_CODES }, (_, index) => ({
+          id: `saved-${index}`,
+          name: `Saved ${index}`,
+          content: `Saved content ${index}`,
+          isJs: false,
+          updatedAt: '2026-06-21T10:00:00.000Z',
+        }))
+      )
+    );
+
+    const screen = render(<App />);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    fireEvent.press(screen.getByText('Mode: JS'));
+    fireEvent.changeText(screen.getByPlaceholderText('Name for saved QR code'), 'Overflow QR');
+    fireEvent.changeText(screen.getByPlaceholderText('Enter plain text for the QR code...'), 'Overflow content');
+
+    await waitFor(() => {
+      expect(screen.getByText('Library')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText('Save'));
+
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(alertMock).toHaveBeenCalledWith(
+      'Library full',
+      `You can save up to ${MAX_SAVED_QR_CODES} QR codes. Delete one before saving another.`
+    );
   });
 
   it('shows an alert and invalid marker instead of QR error text when generating invalid JS', () => {

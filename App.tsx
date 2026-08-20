@@ -248,6 +248,18 @@ export default function App() {
       return;
     }
 
+    const isReplacingSavedItem = savedItems.some(
+      (item) => item.content === content && item.isJs === isJs
+    );
+
+    if (!isReplacingSavedItem && savedItems.length >= MAX_SAVED_QR_CODES) {
+      Alert.alert(
+        'Library full',
+        `You can save up to ${MAX_SAVED_QR_CODES} QR codes. Delete one before saving another.`
+      );
+      return;
+    }
+
     const nextItem: SavedQRCode = {
       id: `${Date.now()}`,
       name,
