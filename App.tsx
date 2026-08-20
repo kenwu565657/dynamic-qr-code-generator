@@ -249,7 +249,7 @@ export default function App() {
     }
 
     const isReplacingSavedItem = savedItems.some(
-      (item) => item.content === content && item.isJs === isJs
+      (item) => item.name === name && item.content === content && item.isJs === isJs
     );
 
     if (!isReplacingSavedItem && savedItems.length >= MAX_SAVED_QR_CODES) {

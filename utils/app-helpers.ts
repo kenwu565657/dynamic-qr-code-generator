@@ -65,7 +65,8 @@ export const mergeSavedItems = (
   maxItems = MAX_SAVED_QR_CODES
 ) => {
   const dedupedItems = existingItems.filter(
-    (item) => !(item.content === nextItem.content && item.isJs === nextItem.isJs)
+    (item) =>
+      !(item.name === nextItem.name && item.content === nextItem.content && item.isJs === nextItem.isJs)
   );
 
   return [nextItem, ...dedupedItems].slice(0, maxItems);
